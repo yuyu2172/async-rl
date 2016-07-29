@@ -29,10 +29,7 @@ class FilteredEnv(Env):
         nac = self.act_filter(ac) if self.act_filter else ac
         total_nrew = 0.0
         total_rew = 0.0
-        if self.skiprate > 0:
-            num_steps = np.random.randint(self.skiprate) + 1
-        else:
-            num_steps = 1
+        num_steps = max(0, self.skiprate) + 1
         nob = None
         done = False
         for _ in range(num_steps):
