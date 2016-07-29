@@ -29,6 +29,7 @@ def eval_performance(process_idx, make_env, model, phi, n_runs):
             a = pout.action_indices[0]
             obs, r, done, info = env.step(a)
             test_r += r
+        env.close()
         scores.append(test_r)
         print('test_{}:'.format(i), test_r)
     mean = statistics.mean(scores)
