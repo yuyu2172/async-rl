@@ -17,9 +17,9 @@ env_lock = mp.Lock()
 def eval_performance(process_idx, make_env, model, phi, n_runs):
     assert n_runs > 1, 'Computing stdev requires at least two runs'
     scores = []
+    env = make_env(process_idx, test=True)      # Always returns the same eval_env
     for i in range(n_runs):
         model.reset_state()
-        env = make_env(process_idx, test=True)
         obs = env.reset()
         done = False
         test_r = 0
@@ -29,7 +29,6 @@ def eval_performance(process_idx, make_env, model, phi, n_runs):
             a = pout.action_indices[0]
             obs, r, done, info = env.step(a)
             test_r += r
-        env.close()
         scores.append(test_r)
         print('test_{}:'.format(i), test_r)
     mean = statistics.mean(scores)
@@ -65,6 +64,9 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             local_t += 1
 
             if global_t > args.steps:
+                # Closing the eval_env if process id is 0
+                if process_idx == 0:
+                    make_env.close(process_idx, test=True)
                 break
 
             agent.optimizer.lr = (
