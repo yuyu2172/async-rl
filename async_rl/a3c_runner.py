@@ -47,6 +47,10 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             episode_r = 0
             global_t = 0
             local_t = 0
+            if args.seed is not None:
+                env.seed(args.seed + process_idx)
+            else:
+                env.seed()
             obs = env.reset()
             r = 0
             done = False
