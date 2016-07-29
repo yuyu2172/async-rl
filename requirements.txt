@@ -1,0 +1,10 @@
+numpy
+gym
+doom-py
+chainer
+pillow
+matplotlib
+pandas
+statistics
+h5py
+cached_property
