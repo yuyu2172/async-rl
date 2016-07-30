@@ -7,6 +7,7 @@ import sys
 import time
 import chainer
 import statistics
+from gym import error
 
 import async_rl.a3c as a3c
 import async_rl.async as async
@@ -84,7 +85,18 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                 r = 0
                 done = False
             else:
-                obs, r, done, info = env.step(a)
+                try:
+                    obs, r, done, info = env.step(a)
+                except error.ResetNeeded:
+                    # Monitor is very picky about never stepping after reset
+                    if process_idx == 0:
+                        print('{} global_t:{} local_t:{} lr:{} r:{}'.format(
+                            outdir, global_t, local_t, agent.optimizer.lr,
+                            episode_r))
+                    episode_r = 0
+                    obs = env.reset()
+                    r = 0
+                    done = False
 
             if global_t % args.eval_frequency == 0:
                 # Evaluation
