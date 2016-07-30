@@ -2,12 +2,7 @@ import os
 import tempfile
 import json
 import subprocess
-import sys
 
-if sys.version_info < (3,0):
-    def tmp(cmd):
-        return subprocess.check_output(cmd, shell=True)
-    subprocess.getoutput = tmp
 
 def prepare_output_dir(args, user_specified_dir=None):
     """Prepare output directory.
@@ -37,17 +32,21 @@ def prepare_output_dir(args, user_specified_dir=None):
     # Save all the arguments
     with open(os.path.join(outdir, 'args.txt'), 'w') as f:
         f.write(json.dumps(vars(args))+'\n\n')
+        f.flush()
 
     # Save `git status`
     with open(os.path.join(outdir, 'git-status.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git status'))
+        f.write(subprocess.check_output('git status', shell=True))
+        f.flush()
 
     # Save `git log`
     with open(os.path.join(outdir, 'git-log.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git log'))
+        f.write(subprocess.check_output('git log', shell=True))
+        f.flush()
 
     # Save `git diff`
     with open(os.path.join(outdir, 'git-diff.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git diff'))
+        f.write(subprocess.check_output('git diff', shell=True))
+        f.flush()
 
     return outdir

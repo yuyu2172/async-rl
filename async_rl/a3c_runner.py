@@ -54,6 +54,8 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             obs = env.reset()
             r = 0
             done = False
+            last_time = time.time()
+            last_global_t = 0
 
         while True:
 
@@ -64,7 +66,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             local_t += 1
 
             if global_t > args.steps:
-                make_env.close(process_idx, env)
+                env.close()
                 break
 
             agent.optimizer.lr = (
@@ -77,9 +79,15 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
 
             if done:
                 if process_idx == 0:
-                    print('{} global_t:{} local_t:{} lr:{} r:{}'.format(
-                        outdir, global_t, local_t, agent.optimizer.lr,
-                        episode_r))
+                    current_time = time.time()
+                    time_since_last = current_time - last_time
+                    steps_since_last = global_t - last_global_t
+                    last_time = current_time
+                    last_global_t = global_t
+                    current_daily_speed  = 86400 * steps_since_last / (time_since_last + 1e-10)
+                    eta = round(24 * (args.steps - global_t) / current_daily_speed, 2)
+                    print('{} global_t:{} local_t:{} lr:{} r:{} speed:{}M step/day eta:{} hrs'.format(
+                        outdir, global_t, local_t, agent.optimizer.lr, episode_r, round(current_daily_speed/1000000, 2), eta))
                 episode_r = 0
                 obs = env.reset()
                 r = 0
@@ -90,9 +98,16 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                 except error.ResetNeeded:
                     # Monitor is very picky about never stepping after reset
                     if process_idx == 0:
-                        print('{} global_t:{} local_t:{} lr:{} r:{}'.format(
-                            outdir, global_t, local_t, agent.optimizer.lr,
-                            episode_r))
+                        current_time = time.time()
+                        time_since_last = current_time - last_time
+                        steps_since_last = global_t - last_global_t
+                        last_time = current_time
+                        last_global_t = global_t
+                        current_daily_speed = 86400 * steps_since_last / (time_since_last + 1e-10)
+                        eta = round(24 * (args.steps - global_t) / current_daily_speed, 2)
+                        print('{} global_t:{} local_t:{} lr:{} r:{} speed:{}M step/day eta:{} hrs'.format(
+                            outdir, global_t, local_t, agent.optimizer.lr, episode_r,
+                            round(current_daily_speed / 1000000, 2), eta))
                     episode_r = 0
                     obs = env.reset()
                     r = 0
@@ -111,7 +126,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                     args.eval_n_runs)
                 with open(os.path.join(outdir, 'scores.txt'), 'a+') as f:
                     elapsed = time.time() - start_time
-                    record = (global_t, elapsed, mean, median, stdev)
+                    record = (global_t, elapsed, mean, median, stdev, round(current_daily_speed / 1000000, 2), eta)
                     print('\t'.join(str(x) for x in record), file=f)
                 with max_score.get_lock():
                     if mean > max_score.value:
@@ -132,8 +147,10 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                 outdir, '{}_keyboardinterrupt.h5'.format(global_t)))
             print('Saved the current model to {}'.format(
                 outdir), file=sys.stderr)
-        make_env.close(process_idx, env)
-        raise
+            env.monitor.close()
+            print('Exiting due to KeyboardInterrupt')
+        env.close()
+
 
     if global_t == args.steps + 1:
         # Save the final model
@@ -145,8 +162,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
 def train_loop_with_profile(process_idx, counter, make_env, max_score, args,
                             agent, env, start_time, outdir):
     import cProfile
-    cmd = 'train_loop(process_idx, counter, make_env, max_score, args, ' \
-        'agent, env, start_time)'
+    cmd = 'train_loop(process_idx, counter, make_env, max_score, args, agent, env, start_time, outdir)'
     cProfile.runctx(cmd, globals(), locals(),
                     'profile-{}.out'.format(os.getpid()))
 
@@ -173,7 +189,7 @@ def run_a3c(processes, make_env, model_opt, phi, t_max=1, beta=1e-2,
 
     # Write a header line first
     with open(os.path.join(outdir, 'scores.txt'), 'a+') as f:
-        column_names = ('steps', 'elapsed', 'mean', 'median', 'stdev')
+        column_names = ('steps', 'elapsed', '\tmean', 'median', 'stdev', 'speed', 'eta_hrs')
         print('\t'.join(column_names), file=f)
 
     def run_func(process_idx):
@@ -185,10 +201,19 @@ def run_a3c(processes, make_env, model_opt, phi, t_max=1, beta=1e-2,
         agent = a3c.A3C(model, opt, t_max, 0.99, beta=beta,
                         process_idx=process_idx, phi=phi)
 
+        # Loading model if model.h5 exists in output dir
+        if os.path.isfile(os.path.join(args.outdir, 'model.h5')):
+            if process_idx == 0:
+                print('Found model.h5 in output directory. Resuming computation of this model.')
+            agent.load_model(os.path.join(args.outdir, 'model.h5'))
+        else:
+            if process_idx == 0:
+                print('Exiting model not found. Save model.h5 and model.h5.opt in the output directory to resume computation of a model.')
+                print('Building new model from scratch.')
+
         if profile:
             train_loop_with_profile(process_idx, counter, make_env, max_score,
-                                    args, agent, env, start_time,
-                                    outdir=outdir)
+                       args, agent, env, start_time, outdir=outdir)
         else:
             train_loop(process_idx, counter, make_env, max_score,
                        args, agent, env, start_time, outdir=outdir)

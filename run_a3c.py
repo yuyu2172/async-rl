@@ -2,6 +2,7 @@ import argparse
 import multiprocessing as mp
 import shutil
 import os
+import time
 
 import gym
 import chainer
@@ -152,27 +153,25 @@ def main():
     except AttributeError:
         pass
 
+    # Creating directories
+    # Resuming model if model.h5 is found in output directory
+    if os.path.isdir(os.path.join(args.outdir)) and not os.path.isfile(os.path.join(args.outdir, 'model.h5')):
+        shutil.rmtree(os.path.join(args.outdir))
+    if os.path.isdir(os.path.join(args.outdir, 'gym-monitor')):
+        shutil.rmtree(os.path.join(args.outdir, 'gym-monitor'))
+    os.makedirs(os.path.join(args.outdir, 'gym-monitor'))
+
     def make_env(process_idx):
         with env_lock:
             if process_idx == 0:
                 env = gym.make(args.env)
                 env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
-                if os.path.isdir(os.path.join(args.outdir)):
-                    shutil.rmtree(os.path.join(args.outdir))
-                os.makedirs(os.path.join(args.outdir, 'gym-monitor'))
                 env.monitor.start(os.path.join(args.outdir, 'gym-monitor'))
                 return env
             else:
                 env = gym.make(args.env)
                 env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
                 return env
-
-        def close(process_idx, target_env):
-            with env_lock:
-                if process_idx == 0:
-                    target_env.monitor.close()
-                return target_env.close()
-
 
     # Getting number of output nodes
     if not isinstance(env.action_space, gym.spaces.discrete.Discrete):
