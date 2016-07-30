@@ -14,10 +14,9 @@ from async_rl.prepare_output_dir import prepare_output_dir
 
 env_lock = mp.Lock()
 
-def eval_performance(process_idx, make_env, model, phi, n_runs):
+def eval_performance(process_idx, env, model, phi, n_runs):
     assert n_runs > 1, 'Computing stdev requires at least two runs'
     scores = []
-    env = make_env(process_idx, test=True)      # Always returns the same eval_env
     for i in range(n_runs):
         model.reset_state()
         obs = env.reset()
@@ -64,9 +63,6 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             local_t += 1
 
             if global_t > args.steps:
-                # Closing the eval_env if process id is 0
-                if process_idx == 0:
-                    make_env.close(process_idx, test=True)
                 break
 
             agent.optimizer.lr = (
@@ -98,7 +94,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                 test_model.reset_state()
 
                 mean, median, stdev = eval_performance(
-                    process_idx, make_env, test_model, agent.phi,
+                    process_idx, env, test_model, agent.phi,
                     args.eval_n_runs)
                 with open(os.path.join(outdir, 'scores.txt'), 'a+') as f:
                     elapsed = time.time() - start_time
@@ -167,7 +163,7 @@ def run_a3c(processes, make_env, model_opt, phi, t_max=1, beta=1e-2,
         print('\t'.join(column_names), file=f)
 
     def run_func(process_idx):
-        env = make_env(process_idx, test=False)
+        env = make_env(process_idx)
         model, opt = model_opt()
         async.set_shared_params(model, shared_params)
         async.set_shared_states(opt, shared_states)

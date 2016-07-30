@@ -19,8 +19,6 @@ from async_rl.init_like_torch import init_like_torch
 from async_rl import a3c_runner
 from async_rl.utils import imresize
 
-# Global eval_env
-eval_env = None
 
 def phi(obs):
     resized = imresize(obs, (84, 84))
@@ -99,8 +97,7 @@ def main():
 
     # Use lock to avoid processes getting stuck on launch
     env_lock = mp.Lock()
-    global eval_env
-    eval_env = gym.make(args.env)
+    env = gym.make(args.env)
 
     # Parsing observation space filters
     if args.obs_filter is None:
@@ -120,7 +117,7 @@ def main():
 
     elif args.obs_filter == 'flatten':
         # Flattens RGB to a vector without downsampling
-        obs_filter = FlattenToVector(eval_env.observation_space.sample())
+        obs_filter = FlattenToVector(env.observation_space.sample())
 
     else:
         raise RuntimeError('--obs-filter not recognized.')
@@ -131,23 +128,23 @@ def main():
 
     elif args.act_filter == 'doom-minimal':
         # Doom with only the allowed actions for the level (Discrete - max 1 button at a time)
-        allowed_actions = DOOM_SETTINGS[eval_env.level][4]
-        act_filter = DiscreteToHighLow(eval_env.action_space, allowed_actions)
+        allowed_actions = DOOM_SETTINGS[env.level][4]
+        act_filter = DiscreteToHighLow(env.action_space, allowed_actions)
 
     elif args.act_filter == 'doom-small-constant':
         # Doom with the minimum constant actions to complete all levels (Discrete - max 1 button at a time)
         allowed_actions = [0, 10, 11, 13, 14, 15, 31]
-        act_filter = DiscreteToHighLow(eval_env.action_space, allowed_actions)
+        act_filter = DiscreteToHighLow(env.action_space, allowed_actions)
 
     elif args.act_filter == 'high-low-matrix':
         # Converts HighLow to a matrix with binary mask (Discrete - Multiple actions allowed at the same time)
-        act_filter = HighLowMatrix(eval_env.action_space)
+        act_filter = HighLowMatrix(env.action_space)
 
     else:
         raise RuntimeError('--act-filter not recognized.')
 
     # Applying filters
-    eval_env = FilteredEnv(eval_env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
+    env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
 
     # Checking if hdf5 (h5py) is installed
     try:
@@ -155,12 +152,9 @@ def main():
     except AttributeError:
         pass
 
-    def make_env(process_idx, test=False):
+    def make_env(process_idx):
         with env_lock:
-            global eval_env
-            if test:
-                return eval_env
-            elif process_idx == 0:
+            if process_idx == 0:
                 env = gym.make(args.env)
                 env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
                 if os.path.isdir(os.path.join(args.outdir)):
@@ -173,19 +167,17 @@ def main():
                 env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
                 return env
 
-        def close(process_idx, test=False):
+        def close(process_idx):
             with env_lock:
-                if test:
-                    return eval_env.close()
-                elif process_idx == 0:
+                if process_idx == 0:
                     env.monitor.close()
                 return env.close()
 
 
     # Getting number of output nodes
-    if not isinstance(eval_env.action_space, gym.spaces.discrete.Discrete):
+    if not isinstance(env.action_space, gym.spaces.discrete.Discrete):
         raise NotImplementedError('Only "discrete" action space implemented. Use an action space filter to convert to "discrete".')
-    n_actions = eval_env.action_space.n
+    n_actions = env.action_space.n
 
     def model_opt():
         if args.agent == 'a3c.lstm':
