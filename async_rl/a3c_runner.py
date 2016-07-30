@@ -132,6 +132,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                 outdir, '{}_keyboardinterrupt.h5'.format(global_t)))
             print('Saved the current model to {}'.format(
                 outdir), file=sys.stderr)
+        make_env.close(process_idx, env)
         raise
 
     if global_t == args.steps + 1:
