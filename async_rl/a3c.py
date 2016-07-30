@@ -173,10 +173,10 @@ class A3C(object):
         copy_param.copy_param(target_link=self.model,
                               source_link=self.shared_model)
         opt_filename = model_filename + '.opt'
-        if os.path.exists(opt_filename):
-            print('WARNING: {0} was not found, so loaded only a model'.format(
-                opt_filename))
-            serializers.load_hdf5(model_filename + '.opt', self.optimizer)
+        if not os.path.exists(opt_filename):
+            print('WARNING: {0} was not found, so loaded only a model'.format(opt_filename))
+        else:
+            serializers.load_hdf5(opt_filename, self.optimizer)
 
     def save_model(self, model_filename):
         """Save a network model to a file
