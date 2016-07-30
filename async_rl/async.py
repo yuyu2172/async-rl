@@ -76,7 +76,6 @@ def run_async(n_process, run_func):
     def set_seed_and_run(process_idx, run_func):
         random_seed.set_random_seed(np.random.randint(0, 2 ** 32))
         run_func(process_idx)
-        run_func.close(process_idx)
 
     for process_idx in range(n_process):
         processes.append(mp.Process(target=set_seed_and_run, args=(

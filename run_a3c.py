@@ -167,11 +167,11 @@ def main():
                 env = FilteredEnv(env, ob_filter=obs_filter, act_filter=act_filter, skiprate=args.skiprate)
                 return env
 
-        def close(process_idx):
+        def close(process_idx, target_env):
             with env_lock:
                 if process_idx == 0:
-                    env.monitor.close()
-                return env.close()
+                    target_env.monitor.close()
+                return target_env.close()
 
 
     # Getting number of output nodes

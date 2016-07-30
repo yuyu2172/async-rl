@@ -63,6 +63,7 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
             local_t += 1
 
             if global_t > args.steps:
+                make_env.close(process_idx, env)
                 break
 
             agent.optimizer.lr = (
