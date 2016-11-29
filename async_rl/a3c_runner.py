@@ -6,7 +6,7 @@ import os
 import sys
 import time
 import chainer
-import statistics
+#import statistics
 from gym import error
 
 import async_rl.a3c as a3c
@@ -31,9 +31,10 @@ def eval_performance(process_idx, env, model, phi, n_runs):
             test_r += r
         scores.append(test_r)
         print('test_{}:'.format(i), test_r)
-    mean = statistics.mean(scores)
-    median = statistics.median(scores)
-    stdev = statistics.stdev(scores)
+    mean = np.mean(scores)
+    median = np.median(scores)
+    stdev = 0
+    #stdev = statistics.stdev(scores)
     return mean, median, stdev
 
 
