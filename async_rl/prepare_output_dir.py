@@ -35,18 +35,18 @@ def prepare_output_dir(args, user_specified_dir=None):
         f.flush()
 
     # Save `git status`
-    with open(os.path.join(outdir, 'git-status.txt'), 'w') as f:
-        f.write(subprocess.check_output('git status', shell=True))
-        f.flush()
+    #with open(os.path.join(outdir, 'git-status.txt'), 'w') as f:
+    #    f.write(subprocess.check_output('git status', shell=True))
+    #    f.flush()
 
-    # Save `git log`
-    with open(os.path.join(outdir, 'git-log.txt'), 'w') as f:
-        f.write(subprocess.check_output('git log', shell=True))
-        f.flush()
+    ## Save `git log`
+    #with open(os.path.join(outdir, 'git-log.txt'), 'w') as f:
+    #    f.write(subprocess.check_output('git log', shell=True))
+    #    f.flush()
 
-    # Save `git diff`
-    with open(os.path.join(outdir, 'git-diff.txt'), 'w') as f:
-        f.write(subprocess.check_output('git diff', shell=True))
-        f.flush()
+    ## Save `git diff`
+    #with open(os.path.join(outdir, 'git-diff.txt'), 'w') as f:
+    #    f.write(subprocess.check_output('git diff', shell=True))
+    #    f.flush()
 
     return outdir

@@ -7,8 +7,9 @@ import time
 import gym
 import chainer
 from chainer import links as L
-from gym.envs.doom.doom_env import DOOM_SETTINGS
+#from gym.envs.doom.doom_env import DOOM_SETTINGS
 import cv2
+#from gym.envs.doom.doom_env import DOOM_SETTINGS
 
 import async_rl.a3c as a3c
 import async_rl.dqn_head as dqn_head
