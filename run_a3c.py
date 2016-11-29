@@ -12,12 +12,12 @@ import cv2
 
 import async_rl.a3c as a3c
 import async_rl.dqn_head as dqn_head
-import async_rl.policy as policy
+import async_rl.models.policy as policy
 import async_rl.rmsprop_async as rmsprop_async
-import async_rl.v_function as v_function
+import async_rl.models.v_function as v_function
 import async_rl.random_seed as random_seed
-from async_rl.filtered_env import *
-from async_rl.init_like_torch import init_like_torch
+from async_rl.envs.filtered_env import *
+from async_rl.models.init_like_torch import init_like_torch
 from async_rl import a3c_runner
 from async_rl.utils import imresize
 
@@ -185,7 +185,7 @@ def main():
             model = A3CLSTM(n_actions)
         else:
             model = A3CFF(n_actions)
-        opt = rmsprop_async.RMSpropAsync(lr=args.lr, eps=1e-1, alpha=0.99)
+        opt = rmsprop_async.optimizers.RMSpropAsync(lr=args.lr, eps=1e-1, alpha=0.99)
         opt.setup(model)
         opt.add_hook(chainer.optimizer.GradientClipping(40))
         return model, opt
