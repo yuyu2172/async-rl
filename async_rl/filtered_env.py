@@ -1,6 +1,7 @@
 from gym import Env, spaces
 import numpy as np
 from async_rl.utils import imresize
+import cv2
 
 class FilteredEnv(Env):
 
@@ -75,7 +76,7 @@ class RGBImageToVector(object):
     def __call__(self, obs):
         # obs is an M x N x 3 rgb image, want an (out_width x out_height,) vector
         grayscale = rgb2gray(obs)
-        downsample = imresize(grayscale, (self.out_width, self.out_height))
+        downsample = cv2.resize(grayscale, (self.out_width, self.out_height))
         flatten = downsample.reshape(self.out_width * self.out_height)
         return flatten
 
@@ -88,7 +89,7 @@ class Resize(object):
         self.out_height = out_height
 
     def __call__(self, obs):
-        downsample = imresize(obs, (self.out_width, self.out_height, 3))
+        downsample = cv2.resize(obs, (self.out_width, self.out_height, 3))
         return downsample
 
     def output_shape(self, x):

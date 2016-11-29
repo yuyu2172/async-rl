@@ -59,9 +59,3 @@ class FCSoftmaxPolicy(chainer.ChainList, SoftmaxPolicy):
             h = F.relu(layer(h))
         h = self[-1](h)
         return h
-
-
-class GaussianPolicy(Policy):
-    """Abstract Gaussian policy class.
-    """
-    pass

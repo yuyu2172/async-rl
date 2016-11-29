@@ -3,11 +3,7 @@ from chainer import functions as F
 from chainer import links as L
 
 
-class VFunction(object):
-    pass
-
-
-class FCVFunction(chainer.ChainList, VFunction):
+class FCVFunction(chainer.ChainList):
 
     def __init__(self, n_input_channels, n_hidden_layers=0,
                  n_hidden_channels=None):

@@ -8,6 +8,7 @@ import gym
 import chainer
 from chainer import links as L
 from gym.envs.doom.doom_env import DOOM_SETTINGS
+import cv2
 
 import async_rl.a3c as a3c
 import async_rl.dqn_head as dqn_head
@@ -21,11 +22,12 @@ from async_rl import a3c_runner
 from async_rl.utils import imresize
 
 
+
 def phi(obs):
-    resized = imresize(obs, (84, 84))
+    resized = cv2.resize(obs, (84, 84))
     return resized.transpose(2, 0, 1).astype(np.float32) / 255
 
-class A3CFF(chainer.ChainList, a3c.A3CModel):
+class A3CFF(chainer.Chain):
 
     def __init__(self, n_actions):
         self.head = dqn_head.NIPSDQNHead(n_input_channels=3)
@@ -38,7 +40,7 @@ class A3CFF(chainer.ChainList, a3c.A3CModel):
         out = self.head(state)
         return self.pi(out), self.v(out)
 
-class A3CLSTM(chainer.ChainList, a3c.A3CModel):
+class A3CLSTM(chainer.Chain):
 
     def __init__(self, n_actions):
         self.head = dqn_head.NIPSDQNHead(n_input_channels=3)

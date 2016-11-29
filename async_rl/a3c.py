@@ -12,18 +12,6 @@ import async_rl.copy_param as copy_param
 logger = getLogger(__name__)
 
 
-class A3CModel(chainer.Link):
-
-    def pi_and_v(self, state, keep_same_state=False):
-        raise NotImplementedError()
-
-    def reset_state(self):
-        pass
-
-    def unchain_backward(self):
-        pass
-
-
 class A3C(object):
     """A3C: Asynchronous Advantage Actor-Critic.
 

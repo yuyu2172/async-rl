@@ -86,8 +86,11 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                     last_global_t = global_t
                     current_daily_speed  = 86400 * steps_since_last / (time_since_last + 1e-10)
                     eta = round(24 * (args.steps - global_t) / current_daily_speed, 2)
-                    print('{} global_t:{} local_t:{} lr:{} r:{} speed:{}M step/day eta:{} hrs'.format(
-                        outdir, global_t, local_t, agent.optimizer.lr, episode_r, round(current_daily_speed/1000000, 2), eta))
+                    print(
+                        '{} global_t:{} local_t:{} lr:{} r:{} speed:{}M '
+                        'step/day eta:{} hrs'.format(
+                        outdir, global_t, local_t, agent.optimizer.lr, episode_r,
+                        round(current_daily_speed/1000000, 2), eta))
                 episode_r = 0
                 obs = env.reset()
                 r = 0
@@ -105,9 +108,11 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                         last_global_t = global_t
                         current_daily_speed = 86400 * steps_since_last / (time_since_last + 1e-10)
                         eta = round(24 * (args.steps - global_t) / current_daily_speed, 2)
-                        print('{} global_t:{} local_t:{} lr:{} r:{} speed:{}M step/day eta:{} hrs'.format(
-                            outdir, global_t, local_t, agent.optimizer.lr, episode_r,
-                            round(current_daily_speed / 1000000, 2), eta))
+                        print(
+                            '{} global_t:{} local_t:{} lr:{} r:{} speed:{}M'
+                            'step/day eta:{} hrs'.format(
+                                outdir, global_t, local_t, agent.optimizer.lr, episode_r,
+                                round(current_daily_speed / 1000000, 2), eta))
                     episode_r = 0
                     obs = env.reset()
                     r = 0
@@ -126,7 +131,8 @@ def train_loop(process_idx, counter, make_env, max_score, args, agent, env,
                     args.eval_n_runs)
                 with open(os.path.join(outdir, 'scores.txt'), 'a+') as f:
                     elapsed = time.time() - start_time
-                    record = (global_t, elapsed, mean, median, stdev, round(current_daily_speed / 1000000, 2), eta)
+                    record = (global_t, elapsed, mean, median, stdev,
+                              round(current_daily_speed / 1000000, 2), eta)
                     print('\t'.join(str(x) for x in record), file=f)
                 with max_score.get_lock():
                     if mean > max_score.value:
