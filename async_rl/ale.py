@@ -9,7 +9,7 @@ import cv2
 import environment
 
 
-class ALE(environment.EpisodicEnvironment):
+class ALE(object):
     """Arcade Learning Environment.
     """
 
