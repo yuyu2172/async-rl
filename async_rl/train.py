@@ -17,16 +17,13 @@ import models.dqn_head as dqn_head
 from models.init_like_torch import init_like_torch
 from models.dqn_phi import dqn_phi
 import a3c
-import ale
+import async_rl.envs.ale as ale
 import random_seed
 import async
 import optimizers.rmsprop_async as rmsprop_async
 from prepare_output_dir import prepare_output_dir
 
 from async_rl.models.a3c_models import A3CFF, A3CLSTM
-
-
-
 
 
 def eval_performance(rom, p_func, n_runs):

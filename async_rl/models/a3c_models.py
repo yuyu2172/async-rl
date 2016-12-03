@@ -25,6 +25,9 @@ class A3CFF(chainer.ChainList):
     def unchain_backward(self):
         pass
 
+    def reset_state(self):
+        pass
+
 
 
 class A3CLSTM(chainer.ChainList):

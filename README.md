@@ -58,7 +58,7 @@ I received a confirmation about their implementation details and some hyperparam
 ## Training
 
 ```
-python a3c_ale.py <number-of-processes> <path-to-atari-rom> [--use-lstm]
+python train.py <number-of-processes> <path-to-atari-rom> [--use-lstm]
 ```
 
 `a3c_ale.py` will save best-so-far models and test scores into the output directory.
