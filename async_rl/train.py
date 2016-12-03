@@ -13,7 +13,7 @@ from chainer import functions as F
 import numpy as np
 
 
-import async_rl.workers.a3c as a3c
+from async_rl.agents.agent import Agent
 import async_rl.envs.ale as ale
 
 import optimizers.rmsprop_async as rmsprop_async
@@ -25,7 +25,7 @@ import async_rl.models.dqn_head as dqn_head
 from async_rl.models.init_like_torch import init_like_torch
 from async_rl.models.dqn_phi import dqn_phi
 
-from async_rl.workers.worker import WorkerProcess
+from async_rl.algos.a3c_algo import A3CAlgo
 
 from async_rl.utils.random_seed import set_random_seed
 from async_rl.utils.prepare_output_dir import prepare_output_dir
@@ -94,14 +94,19 @@ def main():
     def run_func(process_idx):
         env = ale.ALEGymWrapper(args.rom, process_idx)
         #ale.ALE(args.rom, use_sdl=args.use_sdl)
-        model, opt = model_opt()
-        async.set_shared_params(model, shared_params)
+        shared_model, opt = model_opt()
+        async.set_shared_params(shared_model, shared_params)
         async.set_shared_states(opt, shared_states)
 
-        agent = a3c.A3C(model, opt, args.t_max, 0.99, beta=args.beta,
-                        process_idx=process_idx, phi=dqn_phi)
-        worker = WorkerProcess(process_idx, counter, max_score,
-                               args, agent, env, start_time)
+        thread_specific_model = copy.deepcopy(shared_model)
+
+        agent = Agent(process_idx, thread_specific_model, phi=dqn_phi)
+        worker = A3CAlgo(process_idx, counter, max_score,
+                               args, agent, env, start_time,
+                               shared_model, thread_specific_model, opt,
+                               t_max=args.t_max,
+                               gamma=0.99, beta=args.beta,
+                               phi=dqn_phi)
         worker.train(args.profile)
 
     async.run_async(args.processes, run_func)
