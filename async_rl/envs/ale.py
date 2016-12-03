@@ -1,3 +1,4 @@
+
 import collections
 import os
 import sys
@@ -5,6 +6,7 @@ import sys
 import numpy as np
 from ale_python_interface import ALEInterface
 import cv2
+
 
 
 class ALE(object):
@@ -108,55 +110,6 @@ class ALE(object):
 
     def receive_action(self, action):
         assert not self.is_terminal
-
-        rewards = []
-        for i in range(4):
-
-            # Last screeen must be stored before executing the 4th action
-            if i == 3:
-                self.last_raw_screen = self.ale.getScreenRGB()
-
-            rewards.append(self.ale.act(self.legal_actions[action]))
-
-            # Check if lives are lost
-            if self.lives > self.ale.lives():
-                self.lives_lost = True
-            else:
-                self.lives_lost = False
-            self.lives = self.ale.lives()
-
-            if self.is_terminal:
-                break
-
-        # We must have last screen here unless it's terminal
-        if not self.is_terminal:
-            self.last_screens.append(self.current_screen())
-
-        self._reward = sum(rewards)
-
-        return self._reward
-
-    def initialize(self):
-
-        if self.ale.game_over():
-            self.ale.reset_game()
-
-        if self.max_start_nullops > 0:
-            n_nullops = np.random.randint(0, self.max_start_nullops + 1)
-            for _ in range(n_nullops):
-                self.ale.act(0)
-
-        self._reward = 0
-
-        self.last_raw_screen = self.ale.getScreenRGB()
-
-        self.last_screens = collections.deque(
-            [np.zeros((84, 84), dtype=np.uint8)] * 3 +
-            [self.current_screen()],
-            maxlen=self.n_last_screens)
-
-        self.lives_lost = False
-        self.lives = self.ale.lives()
 
         rewards = []
         for i in range(4):
