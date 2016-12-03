@@ -5,7 +5,7 @@ import chainer
 from chainer import functions as F
 from chainer import links as L
 
-import policy_output
+import async_rl.models.policy_output as policy_output
 
 
 class Policy(object):
