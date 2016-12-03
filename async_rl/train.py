@@ -12,25 +12,24 @@ from chainer import links as L
 from chainer import functions as F
 import numpy as np
 
-import models.policy as policy
-import models.v_function as v_function
-import models.dqn_head as dqn_head
-from models.init_like_torch import init_like_torch
-from models.dqn_phi import dqn_phi
-import a3c
+
+import async_rl.a3c as a3c
 import async_rl.envs.ale as ale
-import async
+
 import optimizers.rmsprop_async as rmsprop_async
-from prepare_output_dir import prepare_output_dir
 
 from async_rl.models.a3c_models import A3CFF, A3CLSTM
+import async_rl.models.policy as policy
+import async_rl.models.v_function as v_function
+import async_rl.models.dqn_head as dqn_head
+from async_rl.models.init_like_torch import init_like_torch
+from async_rl.models.dqn_phi import dqn_phi
+
 from async_rl.workers.worker import WorkerProcess
 
-
-
-def set_random_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
+from async_rl.utils.random_seed import set_random_seed
+from async_rl.utils.prepare_output_dir import prepare_output_dir
+import async_rl.utils.async as async
 
 
 def main():

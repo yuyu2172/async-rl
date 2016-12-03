@@ -7,7 +7,7 @@ import chainer
 from chainer import serializers
 from chainer import functions as F
 
-import copy_param
+import async_rl.utils.copy_param as copy_param
 
 logger = getLogger(__name__)
 

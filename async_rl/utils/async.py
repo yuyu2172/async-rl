@@ -5,7 +5,7 @@ import random
 import chainer
 import numpy as np
 
-import random_seed
+import async_rl.utils.random_seed as random_seed
 
 
 def set_shared_params(a, b):
