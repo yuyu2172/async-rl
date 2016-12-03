@@ -13,7 +13,7 @@ from chainer import functions as F
 import numpy as np
 
 
-import async_rl.a3c as a3c
+import async_rl.workers.a3c as a3c
 import async_rl.envs.ale as ale
 
 import optimizers.rmsprop_async as rmsprop_async

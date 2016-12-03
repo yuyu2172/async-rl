@@ -93,37 +93,41 @@ class WorkerProcess(object):
                 env.receive_action(action)
 
             if global_t % args.eval_frequency == 0:
-                # Evaluation
+                self.evaluation(agent, args, start_time, global_t, record, max_score)
 
-                # We must use a copy of the model because test runs can change
-                # the hidden states of the model
-                test_model = copy.deepcopy(agent.model)
-                test_model.reset_state()
-
-                def p_func(s):
-                    pout, _ = test_model.pi_and_v(s)
-                    test_model.unchain_backward()
-                    return pout
-                mean, median, stdev = eval_performance(
-                    args.rom, p_func, args.eval_n_runs)
-                with open(os.path.join(args.outdir, 'scores.txt'), 'a+') as f:
-                    elapsed = time.time() - start_time
-                    (global_t, elapsed, mean, median, stdev)
-                    print('\t'.join(str(x) for x in record), file=f)
-                with max_score.get_lock():
-                    if mean > max_score.value:
-                        # Save the best model so far
-                        print('The best score is updated {} -> {}'.format(
-                            max_score.value, mean))
-                        filename = os.path.join(
-                            args.outdir, '{}.h5'.format(global_t))
-                        agent.save_model(filename)
-                        print('Saved the current best model to {}'.format(
-                            filename))
-                        max_score.value = mean
-
+            # Save the final model
             if global_t == args.steps + 1:
-                # Save the final model
                 agent.save_model(
                     os.path.join(args.outdir, '{}_finish.h5'.format(args.steps)))
                 print('Saved the final model to {}'.format(args.outdir))
+
+    
+    def evaluation(self, agent, args, start_time, global_t, record, max_score):
+        # Evaluation
+
+        # We must use a copy of the model because test runs can change
+        # the hidden states of the model
+        test_model = copy.deepcopy(agent.model)
+        test_model.reset_state()
+
+        def p_func(s):
+            pout, _ = test_model.pi_and_v(s)
+            test_model.unchain_backward()
+            return pout
+        mean, median, stdev = eval_performance(
+            args.rom, p_func, args.eval_n_runs)
+        with open(os.path.join(args.outdir, 'scores.txt'), 'a+') as f:
+            elapsed = time.time() - start_time
+            (global_t, elapsed, mean, median, stdev)
+            print('\t'.join(str(x) for x in record), file=f)
+        with max_score.get_lock():
+            if mean > max_score.value:
+                # Save the best model so far
+                print('The best score is updated {} -> {}'.format(
+                    max_score.value, mean))
+                filename = os.path.join(
+                    args.outdir, '{}.h5'.format(global_t))
+                agent.save_model(filename)
+                print('Saved the current best model to {}'.format(
+                    filename))
+                max_score.value = mean
