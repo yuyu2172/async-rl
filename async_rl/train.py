@@ -5,6 +5,7 @@ import os
 import sys
 import statistics
 import time
+import random
 
 import chainer
 from chainer import links as L
@@ -18,13 +19,18 @@ from models.init_like_torch import init_like_torch
 from models.dqn_phi import dqn_phi
 import a3c
 import async_rl.envs.ale as ale
-import random_seed
 import async
 import optimizers.rmsprop_async as rmsprop_async
 from prepare_output_dir import prepare_output_dir
 
 from async_rl.models.a3c_models import A3CFF, A3CLSTM
 from async_rl.workers.worker import WorkerProcess
+
+
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def main():
