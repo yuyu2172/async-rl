@@ -23,51 +23,10 @@ import async
 import optimizers.rmsprop_async as rmsprop_async
 from prepare_output_dir import prepare_output_dir
 
+from async_rl.models.a3c_models import A3CFF, A3CLSTM
 
 
-class A3CFF(chainer.ChainList, a3c.A3CModel):
 
-    def __init__(self, n_actions):
-        self.head = dqn_head.NIPSDQNHead()
-        self.pi = policy.FCSoftmaxPolicy(
-            self.head.n_output_channels, n_actions)
-        self.v = v_function.FCVFunction(self.head.n_output_channels)
-        super().__init__(self.head, self.pi, self.v)
-        init_like_torch(self)
-
-    def pi_and_v(self, state, keep_same_state=False):
-        out = self.head(state)
-        return self.pi(out), self.v(out)
-
-
-class A3CLSTM(chainer.ChainList, a3c.A3CModel):
-
-    def __init__(self, n_actions):
-        self.head = dqn_head.NIPSDQNHead()
-        self.pi = policy.FCSoftmaxPolicy(
-            self.head.n_output_channels, n_actions)
-        self.v = v_function.FCVFunction(self.head.n_output_channels)
-        self.lstm = L.LSTM(self.head.n_output_channels,
-                           self.head.n_output_channels)
-        super().__init__(self.head, self.lstm, self.pi, self.v)
-        init_like_torch(self)
-
-    def pi_and_v(self, state, keep_same_state=False):
-        out = self.head(state)
-        if keep_same_state:
-            prev_h, prev_c = self.lstm.h, self.lstm.c
-            out = self.lstm(out)
-            self.lstm.h, self.lstm.c = prev_h, prev_c
-        else:
-            out = self.lstm(out)
-        return self.pi(out), self.v(out)
-
-    def reset_state(self):
-        self.lstm.reset_state()
-
-    def unchain_backward(self):
-        self.lstm.h.unchain_backward()
-        self.lstm.c.unchain_backward()
 
 
 def eval_performance(rom, p_func, n_runs):
