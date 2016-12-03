@@ -93,7 +93,7 @@ class WorkerProcess(object):
                 env.receive_action(action)
 
             if global_t % args.eval_frequency == 0:
-                self.evaluation(agent, args, start_time, global_t, record, max_score)
+                self.evaluation(agent, args, start_time, global_t, max_score)
 
             # Save the final model
             if global_t == args.steps + 1:
@@ -102,7 +102,7 @@ class WorkerProcess(object):
                 print('Saved the final model to {}'.format(args.outdir))
 
     
-    def evaluation(self, agent, args, start_time, global_t, record, max_score):
+    def evaluation(self, agent, args, start_time, global_t, max_score):
         # Evaluation
 
         # We must use a copy of the model because test runs can change
@@ -118,7 +118,7 @@ class WorkerProcess(object):
             args.rom, p_func, args.eval_n_runs)
         with open(os.path.join(args.outdir, 'scores.txt'), 'a+') as f:
             elapsed = time.time() - start_time
-            (global_t, elapsed, mean, median, stdev)
+            record = (global_t, elapsed, mean, median, stdev)
             print('\t'.join(str(x) for x in record), file=f)
         with max_score.get_lock():
             if mean > max_score.value:
