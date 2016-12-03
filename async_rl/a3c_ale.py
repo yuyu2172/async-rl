@@ -11,18 +11,18 @@ from chainer import links as L
 from chainer import functions as F
 import numpy as np
 
-import policy
-import v_function
-import dqn_head
+import models.policy as policy
+import models.v_function as v_function
+import models.dqn_head as dqn_head
+from models.init_like_torch import init_like_torch
+from models.dqn_phi import dqn_phi
 import a3c
 import ale
 import random_seed
 import async
-import rmsprop_async
+import optimizers.rmsprop_async as rmsprop_async
 from prepare_output_dir import prepare_output_dir
-from nonbias_weight_decay import NonbiasWeightDecay
-from init_like_torch import init_like_torch
-from dqn_phi import dqn_phi
+
 
 
 class A3CFF(chainer.ChainList, a3c.A3CModel):
@@ -192,7 +192,7 @@ def main():
     parser.add_argument('processes', type=int)
     parser.add_argument('rom', type=str)
     parser.add_argument('--seed', type=int, default=None)
-    parser.add_argument('--outdir', type=str, default=None)
+    parser.add_argument('--outdir', type=str, default='out')
     parser.add_argument('--use-sdl', action='store_true')
     parser.add_argument('--t-max', type=int, default=5)
     parser.add_argument('--beta', type=float, default=1e-2)
@@ -201,7 +201,6 @@ def main():
     parser.add_argument('--lr', type=float, default=7e-4)
     parser.add_argument('--eval-frequency', type=int, default=10 ** 6)
     parser.add_argument('--eval-n-runs', type=int, default=10)
-    parser.add_argument('--weight-decay', type=float, default=0.0)
     parser.add_argument('--use-lstm', action='store_true')
     parser.set_defaults(use_sdl=False)
     parser.set_defaults(use_lstm=False)
@@ -224,8 +223,6 @@ def main():
         opt = rmsprop_async.RMSpropAsync(lr=7e-4, eps=1e-1, alpha=0.99)
         opt.setup(model)
         opt.add_hook(chainer.optimizer.GradientClipping(40))
-        if args.weight_decay > 0:
-            opt.add_hook(NonbiasWeightDecay(args.weight_decay))
         return model, opt
 
     model, opt = model_opt()
