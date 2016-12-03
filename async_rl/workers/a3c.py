@@ -81,8 +81,9 @@ class A3C(object):
                 R += self.past_rewards[i]
                 v = self.past_values[i]
                 if self.process_idx == 0:
-                    logger.debug('s:%s v:%s R:%s',
-                                 self.past_states[i].data.sum(), v.data, R)
+                    pass
+                    #logger.debug('s:%s v:%s R:%s',
+                    #             self.past_states[i].data.sum(), v.data, R)
                 advantage = R - v
                 # Accumulate gradients of policy
                 log_prob = self.past_action_log_prob[i]
@@ -110,7 +111,8 @@ class A3C(object):
                 v_loss *= factor
 
             if self.process_idx == 0:
-                logger.debug('pi_loss:%s v_loss:%s', pi_loss.data, v_loss.data)
+                pass
+                #logger.debug('pi_loss:%s v_loss:%s', pi_loss.data, v_loss.data)
 
             total_loss = pi_loss + F.reshape(v_loss, pi_loss.data.shape)
 
@@ -124,10 +126,8 @@ class A3C(object):
             # Update the globally shared model
             if self.process_idx == 0:
                 norm = self.optimizer.compute_grads_norm()
-                logger.debug('grad norm:%s', norm)
+                #logger.debug('grad norm:%s', norm)
             self.optimizer.update()
-            if self.process_idx == 0:
-                logger.debug('update')
 
             self.sync_parameters()
             self.model.unchain_backward()
@@ -149,8 +149,9 @@ class A3C(object):
             self.past_values[self.t] = vout
             self.t += 1
             if self.process_idx == 0:
-                logger.debug('t:%s entropy:%s, probs:%s',
-                             self.t, pout.entropy.data, pout.probs.data)
+                pass
+                #logger.debug('t:%s entropy:%s, probs:%s',
+                #             self.t, pout.entropy.data, pout.probs.data)
             return pout.action_indices[0], agent_info
         else:
             self.model.reset_state()

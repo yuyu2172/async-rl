@@ -58,7 +58,7 @@ class WorkerProcess(object):
             if self.process_idx == 0:
                 # Save the current model before being killed
                 self.agent.save_model(os.path.join(
-                    args.outdir, '{}_keyboardinterrupt.h5'.format(self.counter.value)))
+                    self.args.outdir, '{}_keyboardinterrupt.h5'.format(self.counter.value)))
                 print('Saved the current model to {}'.format(
                       self.args.outdir, file=sys.stderr))
             raise
@@ -96,8 +96,9 @@ class WorkerProcess(object):
 
             if done:
                 if process_idx == 0:
-                    print('{} global_t:{} local_t:{} lr:{} episode_r:{}'.format(
-                        args.outdir, global_t, local_t, agent.optimizer.lr, episode_r))
+                    pass
+                    #print('{} global_t:{} local_t:{} lr:{} episode_r:{}'.format(
+                    #    args.outdir, global_t, local_t, agent.optimizer.lr, episode_r))
                 episode_r = 0
                 obs = env.reset()
                 r = 0
