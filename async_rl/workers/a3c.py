@@ -53,7 +53,7 @@ class A3C(object):
         copy_param.copy_param(target_link=self.model,
                               source_link=self.shared_model)
 
-    def act(self, state, reward, is_state_terminal):
+    def get_action(self, state, reward, is_state_terminal):
 
         if self.clip_reward:
             reward = np.clip(reward, -1, 1)
@@ -140,6 +140,7 @@ class A3C(object):
 
             self.t_start = self.t
 
+        agent_info = {}
         if not is_state_terminal:
             self.past_states[self.t] = statevar
             pout, vout = self.model.pi_and_v(statevar)
@@ -150,10 +151,10 @@ class A3C(object):
             if self.process_idx == 0:
                 logger.debug('t:%s entropy:%s, probs:%s',
                              self.t, pout.entropy.data, pout.probs.data)
-            return pout.action_indices[0]
+            return pout.action_indices[0], agent_info
         else:
             self.model.reset_state()
-            return None
+            return None, agent_info
 
     def load_model(self, model_filename):
         """Load a network model form a file

@@ -102,7 +102,7 @@ def main():
                         process_idx=process_idx, phi=dqn_phi)
         worker = WorkerProcess(process_idx, counter, max_score,
                                args, agent, env, start_time)
-        worker.train_loop(args.profile)
+        worker.train(args.profile)
 
     async.run_async(args.processes, run_func)
 

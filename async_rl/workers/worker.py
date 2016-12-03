@@ -46,14 +46,14 @@ class WorkerProcess(object):
         self.env = env
         self.start_time = start_time
 
-    def train_loop(self, profile=False):
+    def train(self, profile=False):
         args = [self.process_idx, self.counter, self.max_score, self.args, self.agent,
                 self.env, self.start_time]
         try:
             if profile and self.process_idx == 0:
-                do_line_profile(self._train_loop)(*args)
+                do_line_profile(self._train_core)(*args)
             else:
-                self._train_loop(*args)
+                self._train_core(*args)
         except KeyboardInterrupt:
             if self.process_idx == 0:
                 # Save the current model before being killed
@@ -63,7 +63,7 @@ class WorkerProcess(object):
                       self.args.outdir, file=sys.stderr))
             raise
 
-    def _train_loop(self, process_idx, counter, max_score, args, agent, env, start_time):
+    def _train_core(self, process_idx, counter, max_score, args, agent, env, start_time):
         # Locking to avoid resetting all envs at once
         with env_lock:
             total_r = 0
@@ -92,7 +92,7 @@ class WorkerProcess(object):
             total_r += r
             episode_r += r
 
-            a = agent.act(obs, r, done)
+            a, _ = agent.get_action(obs, r, done)
 
             if done:
                 if process_idx == 0:
