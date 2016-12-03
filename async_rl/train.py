@@ -92,7 +92,8 @@ def main():
         print('\t'.join(column_names), file=f)
 
     def run_func(process_idx):
-        env = ale.ALE(args.rom, use_sdl=args.use_sdl)
+        env = ale.ALEGymWrapper(args.rom, process_idx)
+        #ale.ALE(args.rom, use_sdl=args.use_sdl)
         model, opt = model_opt()
         async.set_shared_params(model, shared_params)
         async.set_shared_states(opt, shared_states)

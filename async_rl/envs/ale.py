@@ -1,4 +1,3 @@
-
 import collections
 import os
 import sys
@@ -7,6 +6,40 @@ import numpy as np
 from ale_python_interface import ALEInterface
 import cv2
 
+import gym
+import gym.spaces
+gym.undo_logger_setup()
+
+
+class ALEGymWrapper(gym.Env):
+
+    metadata = {'render.modes': ['rgb_array']}
+
+    def __init__(self, rom_filename, process_idx=0):
+        self.ale = ALE(rom_filename)
+
+        self.gym_actions = [0, 1, 2, 3]
+        self.nA = len(self.gym_actions)
+        self.action_space = gym.spaces.Discrete(self.nA)
+
+    def _reset(self):
+        self.ale.initialize()
+        return self.ale.last_screens
+        #return self._chainerize(self.ale.last_screens)
+
+    def _step(self, a):
+        r = self.ale.receive_action(a)
+        return self.ale.last_screens, r, self.ale.is_terminal, {}
+        # return self._chainerize(self.ale.last_screens), r, self.ale.is_terminal, {}
+
+    def _render(self, mode='rgb_array', close=False):
+        if mode != 'rgb_array':
+            raise NotImplementedError
+        #return self.ale.last_screens[0]
+        return self.ale.ale.getScreenRGB()
+
+    def _chainerize(self, x):
+        return np.expand_dims(np.array(x).astype(np.float32), axis=0)
 
 
 class ALE(object):

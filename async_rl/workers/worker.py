@@ -5,12 +5,17 @@ import time
 import numpy as np
 import statistics
 import chainer
+import multiprocessing as mp
 
 import async_rl.envs.ale as ale
 from async_rl.models.dqn_phi import dqn_phi
 from async_rl.analysis.do_line_profile import do_line_profile
 
 
+env_lock = mp.Lock()
+
+
+# TODO: fix this
 def eval_performance(rom, p_func, n_runs):
     assert n_runs > 1, 'Computing stdev requires at least two runs'
     scores = []
@@ -59,10 +64,16 @@ class WorkerProcess(object):
             raise
 
     def _train_loop(self, process_idx, counter, max_score, args, agent, env, start_time):
-        total_r = 0
-        episode_r = 0
-        global_t = 0
-        local_t = 0
+        # Locking to avoid resetting all envs at once
+        with env_lock:
+            total_r = 0
+            episode_r = 0
+            global_t = 0
+            local_t = 0
+
+            obs = env.reset()
+            r = 0
+            done = False
 
         while True:
 
@@ -78,19 +89,21 @@ class WorkerProcess(object):
             agent.optimizer.lr = (
                 args.steps - global_t - 1) / args.steps * args.lr
 
-            total_r += env.reward
-            episode_r += env.reward
+            total_r += r
+            episode_r += r
 
-            action = agent.act(env.state, env.reward, env.is_terminal)
+            a = agent.act(obs, r, done)
 
-            if env.is_terminal:
+            if done:
                 if process_idx == 0:
                     print('{} global_t:{} local_t:{} lr:{} episode_r:{}'.format(
                         args.outdir, global_t, local_t, agent.optimizer.lr, episode_r))
                 episode_r = 0
-                env.initialize()
+                obs = env.reset()
+                r = 0
+                done = False
             else:
-                env.receive_action(action)
+                obs, r, done, info = env.step(a)
 
             if global_t % args.eval_frequency == 0:
                 self.evaluation(agent, args, start_time, global_t, max_score)
