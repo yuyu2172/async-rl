@@ -119,8 +119,9 @@ class A3CAlgo(object):
             total_r += r
             episode_r += r
 
-            next_obs, done, samples_data = self.proceed(env, agent, obs, self.t_max)
-            self.optimize(samples_data, done)
+            next_obs, done, samples_data, lookup_agent_info = self.proceed(
+                env, agent, obs, self.t_max)
+            self.optimize(samples_data, lookup_agent_info, done)
 
             if done:
                 episode_r = 0
@@ -130,21 +131,19 @@ class A3CAlgo(object):
             else:
                 obs = next_obs
 
-
             # update counter
-
             with counter.get_lock():
                 counter.value += len(samples_data)
                 global_t = counter.value
             prev_t = global_t - len(samples_data)  # this is little tricky
             local_t += len(samples_data)
 
-            print('global_t {}'.format(global_t))
+            #print('global_t {}'.format(global_t))
             if abs(global_t % args.eval_frequency -\
                    prev_t % args.eval_frequency) > self.t_max:
                 self.evaluation(agent, args, start_time, global_t, max_score)
 
-    def proceed(self, env, agent, obs, steps):
+    def proceed(self, env, agent, obs, steps, do_lookup=True):
         """Proceed agent by steps
 
         If environment terminates in the middle of advancing the episode,
@@ -174,23 +173,28 @@ class A3CAlgo(object):
                 obs = None
                 break
             obs = next_obs
-        return obs, done, samples_data
 
-    def optimize(self, samples_data, done):
-        """Update the model by collected samples.
+        lookup_agent_info = {}
+        if do_lookup:
+            lookup_agent_info = agent.lookup(next_obs)
+        return obs, done, samples_data, lookup_agent_info
+
+    def optimize(self, samples_data, lookup_agent_info, done):
+        """Calculate loss from collected samples and update model with it.
         """
         #print('start optimize ', done)
         if done:
             R = 0
         else:
-            last_agent_info = samples_data[-1]['agent_info']
-            R = float(last_agent_info['values'].data)
+            R = float(lookup_agent_info['values'].data)
 
         pi_loss = 0
         v_loss = 0
+        # from muupan's code
+        # if (is_state_terminal and self.t_start == self.t)
         if len(samples_data) == 1:
             return
-        for i in reversed(range(len(samples_data) - 1)):
+        for i in reversed(range(len(samples_data))):
             R *= self.gamma
             R += samples_data[i]['reward']
             v = samples_data[i]['agent_info']['values']
@@ -227,9 +231,9 @@ class A3CAlgo(object):
         self.shared_model.zerograds()
         copy_param.copy_grad(
             target_link=self.shared_model, source_link=self.model)
-        if self.process_idx == 0:
-            norm = self.optimizer.compute_grads_norm()
-            logger.debug('grad norm:%s', norm)
+        #if self.process_idx == 0:
+        #    norm = self.optimizer.compute_grads_norm()
+        #    logger.debug('grad norm:%s', norm)
         self.optimizer.update()
 
         self.sync_parameters()
