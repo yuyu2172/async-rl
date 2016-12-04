@@ -12,8 +12,10 @@ Any feedback is welcome :)
 - A3C FF/LSTM (only for discrete action space)
 - Atari environment
 - ViZDoom environment (experimental)
+- Works with OpenAI environment (look result _data/scores.txt.png )
 
 ## Current Status
+
 
 ### A3C FF
 
