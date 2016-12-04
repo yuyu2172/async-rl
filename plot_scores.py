@@ -10,7 +10,7 @@ def main():
     parser.add_argument('--title', type=str, default=None)
     args = parser.parse_args()
 
-    scores = pd.read_csv(args.scores, delimiter='\t')
+    scores = pd.read_csv(args.scores, sep='\s*')
     for col in ['mean', 'median']:
         plt.plot(scores['steps'], scores[col], label=col)
     if args.title is not None:

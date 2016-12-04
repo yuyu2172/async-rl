@@ -10,7 +10,6 @@ from chainer import functions as F
 import async_rl.utils.copy_param as copy_param
 
 
-
 class Agent(object):
     def __init__(self, process_idx, model, phi):
         self.model = model

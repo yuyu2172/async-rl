@@ -78,8 +78,6 @@ class A3CAlgo(object):
 
         self.t_max = t_max
 
-
-
     def train(self, profile=False):
         args = [self.process_idx, self.counter, self.max_score, self.args, self.agent,
                 self.env, self.start_time]
