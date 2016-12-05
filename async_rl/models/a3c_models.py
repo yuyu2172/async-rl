@@ -15,7 +15,7 @@ class A3CFF(chainer.ChainList):
         self.pi = policy.FCSoftmaxPolicy(
             self.head.n_output_channels, n_actions)
         self.v = v_function.FCVFunction(self.head.n_output_channels)
-        super().__init__(self.head, self.pi, self.v)
+        super(A3CFF, self).__init__(self.head, self.pi, self.v)
         init_like_torch(self)
 
     def pi_and_v(self, state, keep_same_state=False):

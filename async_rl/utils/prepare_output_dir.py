@@ -34,15 +34,15 @@ def prepare_output_dir(args, user_specified_dir=None):
         f.write(json.dumps(vars(args)))
 
     # Save `git status`
-    with open(os.path.join(outdir, 'git-status.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git status'))
+    #with open(os.path.join(outdir, 'git-status.txt'), 'w') as f:
+    #    f.write(subprocess.getoutput('git status'))
 
-    # Save `git log`
-    with open(os.path.join(outdir, 'git-log.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git log'))
+    ## Save `git log`
+    #with open(os.path.join(outdir, 'git-log.txt'), 'w') as f:
+    #    f.write(subprocess.getoutput('git log'))
 
-    # Save `git diff`
-    with open(os.path.join(outdir, 'git-diff.txt'), 'w') as f:
-        f.write(subprocess.getoutput('git diff'))
+    ## Save `git diff`
+    #with open(os.path.join(outdir, 'git-diff.txt'), 'w') as f:
+    #    f.write(subprocess.getoutput('git diff'))
 
     return outdir

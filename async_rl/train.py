@@ -89,7 +89,8 @@ def main():
     # Write a header line first
     with open(os.path.join(args.outdir, 'scores.txt'), 'a+') as f:
         column_names = ('steps', 'elapsed', 'mean', 'median', 'stdev')
-        print('\t'.join(column_names), file=f)
+        print >>f, '\t'.join(column_names)
+        #print('\t'.join(column_names), file=f)
 
     def run_func(process_idx):
         env = ale.ALEGymWrapper(args.rom, process_idx)

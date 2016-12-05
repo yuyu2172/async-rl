@@ -277,7 +277,8 @@ class A3CAlgo(object):
         with open(os.path.join(args.outdir, 'scores.txt'), 'a+') as f:
             elapsed = time.time() - start_time
             record = (global_t, elapsed, mean, median, stdev)
-            print('\t'.join(str(x) for x in record), file=f)
+            #print('\t'.join(str(x) for x in record), file=f)
+            print >>f, '\t'.join(str(x) for x in record)
         with max_score.get_lock():
             if mean > max_score.value:
                 # Save the best model so far
