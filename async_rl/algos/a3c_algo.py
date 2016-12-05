@@ -112,7 +112,7 @@ class A3CAlgo(object):
             if global_t > args.steps:
                 break
             self.optimizer.lr = (
-                args.steps - global_t - 1) / args.steps * args.lr
+                args.steps - global_t - 1) / float(args.steps) * args.lr
 
             total_r += r
             episode_r += r
